@@ -1,5 +1,14 @@
 [
   {
+    "slug": "simulasi-teorema-limit-pusat",
+    "title": "Simulasi Interaktif Teorema Limit Pusat",
+    "date": "2026-10-28",
+    "category": "pendidikan",
+    "tags": ["statistika", "media pembelajaran", "simulasi"],
+    "summary": "Media belajar interaktif: pilih distribusi populasi dan ukuran sampel, lalu amati rata-rata sampel membentuk kurva normal.",
+    "file": "posts/simulasi-teorema-limit-pusat.md"
+  },
+  {
     "slug": "statistik-deskriptif-interaktif",
     "title": "Kalkulator Statistik Deskriptif untuk Mahasiswa",
     "date": "2026-10-20",
