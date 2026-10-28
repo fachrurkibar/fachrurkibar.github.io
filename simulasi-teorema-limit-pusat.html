@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Simulasi interaktif Teorema Limit Pusat: pilih distribusi populasi, parameter, dan ukuran sampel, lalu amati distribusi data dan rata-rata sampel.">
+<title>Simulator Teorema Limit Pusat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: lab bench — setup column on the left (numbered setup steps), two stacked instrument charts + readout table on the right */
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --ink:#15202c; --muted:#5a6776; --line:#d6dde5; --grid:#e7ebf0;
+  --data:#2c58cc; --data-soft:rgba(44,88,204,.22);
+  --mean:#c9661a; --mean-soft:rgba(201,102,26,.30);
+  --curve:#15202c; --danger:#b42318; --chip:#f3f5f8;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0e131a; --surface:#151c25; --ink:#e4e9ef; --muted:#93a0ae; --line:#28323e; --grid:#1d2630;
+  --data:#7196ff; --data-soft:rgba(113,150,255,.22);
+  --mean:#f19a4c; --mean-soft:rgba(241,154,76,.28);
+  --curve:#e4e9ef; --danger:#ff7b6e; --chip:#1b2430; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0e131a; --surface:#151c25; --ink:#e4e9ef; --muted:#93a0ae; --line:#28323e; --grid:#1d2630;
+  --data:#7196ff; --data-soft:rgba(113,150,255,.22);
+  --mean:#f19a4c; --mean-soft:rgba(241,154,76,.28);
+  --curve:#e4e9ef; --danger:#ff7b6e; --chip:#1b2430; color-scheme:dark }
+
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding-block:28px 48px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+header{display:grid;gap:8px;margin-bottom:24px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(28px,4.2vw,44px);line-height:1.05;margin:0;text-wrap:balance;letter-spacing:-.01em}
+.lede{margin:0;max-width:68ch;color:var(--muted)}
+.layout{display:grid;grid-template-columns:350px minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:920px){.layout{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:grid;gap:22px;position:sticky;top:16px}
+@media (max-width:920px){.panel{position:static}}
+.step{display:grid;gap:10px}
+.step h2{margin:0;font-family:var(--f-display);font-weight:500;font-size:17px;display:flex;align-items:baseline;gap:8px}
+.step h2 .num{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.dists{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.dist{appearance:none;border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:8px;padding:6px 8px 7px;text-align:left;cursor:pointer;display:grid;gap:2px;font:inherit}
+.dist canvas{width:100%;height:26px;display:block}
+.dist span{font-size:13px;font-weight:500;line-height:1.2}
+.dist small{font-size:11px;color:var(--muted)}
+.dist[aria-pressed="true"]{border-color:var(--data);box-shadow:inset 0 0 0 1px var(--data);background:var(--surface)}
+.dist:focus-visible,.btn:focus-visible,.seg button:focus-visible,.chip:focus-visible,input:focus-visible{outline:2px solid var(--data);outline-offset:2px}
+.params{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.field{display:grid;gap:4px;min-width:0}
+.field label{font-size:12.5px;color:var(--muted)}
+input[type=number]{font-family:var(--f-mono);font-size:14px;width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--data)}
+.err{color:var(--danger);font-size:13px;margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{appearance:none;border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:999px;padding:2px 10px;font-family:var(--f-mono);font-size:12.5px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--data);border-color:var(--data);color:var(--surface)}
+.row{display:flex;gap:10px;align-items:center}
+.row > input[type=range]{flex:1}
+.row > input[type=number]{width:92px}
+.seg{display:inline-grid;grid-auto-flow:column;grid-auto-columns:1fr;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--chip)}
+.seg button{appearance:none;border:0;background:transparent;color:var(--muted);font:inherit;font-size:13px;padding:7px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:inset 0 -2px 0 var(--data)}
+.hint{font-size:12.5px;color:var(--muted);margin:0}
+.actions{display:grid;grid-template-columns:1fr auto auto;gap:8px}
+.btn{appearance:none;border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:8px;padding:9px 12px;font:inherit;font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap}
+.btn.primary{background:var(--data);border-color:var(--data);color:var(--surface)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.progress{display:grid;gap:6px}
+.bar{height:6px;background:var(--grid);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--mean);transition:width .12s linear}
+.progress .txt{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+
+.results{display:grid;gap:18px;min-width:0}
+.formula{display:flex;flex-wrap:wrap;gap:10px 28px;align-items:baseline;padding:14px 18px;border:1px dashed var(--line);border-radius:10px}
+.formula .big{font-family:var(--f-mono);font-size:clamp(16px,2.2vw,20px);font-weight:500}
+.formula .big b{color:var(--mean);font-weight:500}
+.formula .sub{font-size:13px;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 16px 12px;display:grid;gap:10px;min-width:0}
+.card-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
+.card h3{margin:0;font-family:var(--f-display);font-weight:500;font-size:18px}
+.card h3 small{display:block;font-family:var(--f-body);font-size:12.5px;color:var(--muted);font-weight:400}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.legend i.line{height:2px;vertical-align:3px}
+.chart{position:relative;height:300px}
+@media (max-width:560px){.chart{height:240px}}
+.chart canvas{position:absolute;inset:0;width:100%;height:100%}
+.caption{font-size:13px;color:var(--muted);margin:0;font-variant-numeric:tabular-nums}
+.caption b{color:var(--ink);font-weight:500;font-family:var(--f-mono);font-size:12.5px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:420px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left}
+thead th{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+td.sim{color:var(--mean)}
+.verdict{margin:0;font-size:14px;max-width:72ch}
+.verdict b{font-weight:600}
+footer{margin-top:22px;font-size:12.5px;color:var(--muted);max-width:80ch}
+@media (prefers-reduced-motion: reduce){.bar i{transition:none}}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Simulasi statistika · Teorema Limit Pusat</div>
+    <h1>Teorema Limit Pusat</h1>
+    <p class="lede">Pilih bentuk populasi, tentukan parameternya, lalu ambil banyak sampel acak berukuran <i>n</i>. Apa pun bentuk populasinya, histogram rata-rata sampel akan mendekati kurva normal saat <i>n</i> membesar.</p>
+  </header>
+
+  <main class="layout">
+    <aside class="panel" aria-label="Pengaturan simulasi">
+      <section class="step">
+        <h2><span class="num">1</span>Distribusi populasi</h2>
+        <div class="dists" id="dists" role="group" aria-label="Pilih distribusi"></div>
+        <div class="params" id="params"></div>
+        <p class="err" id="err" hidden></p>
+      </section>
+
+      <section class="step">
+        <h2><span class="num">2</span>Pengambilan sampel</h2>
+        <div class="field">
+          <label for="nNum">Ukuran sampel <i>n</i> (pengamatan per sampel)</label>
+          <div class="row">
+            <input type="range" id="nRange" min="1" max="200" step="1" value="10" aria-label="Ukuran sampel n">
+            <input type="number" id="nNum" min="1" max="1000" step="1" value="10">
+          </div>
+          <div class="chips" id="nChips"></div>
+        </div>
+        <div class="field">
+          <label for="mNum">Banyak sampel yang diambil (replikasi)</label>
+          <input type="number" id="mNum" min="10" max="10000" step="10" value="2000">
+        </div>
+      </section>
+
+      <section class="step">
+        <h2><span class="num">3</span>Cara menampilkan</h2>
+        <div class="seg" role="group" aria-label="Mode tampilan">
+          <button type="button" id="modeAll" aria-pressed="true">Sekaligus</button>
+          <button type="button" id="modeStep" aria-pressed="false">Bertahap</button>
+        </div>
+        <div class="field" id="speedWrap" hidden>
+          <label for="speed">Kecepatan: <span id="speedTxt"></span></label>
+          <input type="range" id="speed" min="0" max="100" value="38">
+        </div>
+        <div class="actions">
+          <button type="button" class="btn primary" id="run">Bangkitkan semua</button>
+          <button type="button" class="btn" id="step1" title="Ambil 1 sampel">+1</button>
+          <button type="button" class="btn" id="step10" title="Ambil 10 sampel">+10</button>
+        </div>
+        <button type="button" class="btn" id="reset">Kosongkan hasil</button>
+        <div class="progress">
+          <div class="bar"><i id="prog"></i></div>
+          <div class="txt"><span id="progTxt">0 / 0 sampel</span><span id="lastTxt"></span></div>
+        </div>
+      </section>
+    </aside>
+
+    <section class="results">
+      <div class="formula">
+        <div class="big" id="formula">X̄ ≈ N(μ, σ²/n)</div>
+        <div class="sub" id="formulaSub"></div>
+      </div>
+
+      <article class="card">
+        <div class="card-head">
+          <h3>Distribusi data sampel<small>Histogram empirik dari nilai-nilai acak yang dibangkitkan</small></h3>
+          <div class="seg" role="group" aria-label="Data yang ditampilkan">
+            <button type="button" id="viewAll" aria-pressed="true">Semua pengamatan</button>
+            <button type="button" id="viewLast" aria-pressed="false">Sampel terakhir</button>
+          </div>
+        </div>
+        <div class="legend">
+          <span><i style="background:var(--data-soft);box-shadow:inset 0 0 0 1px var(--data)"></i>Frekuensi teramati</span>
+          <span><i class="line" style="background:var(--curve)"></i>Frekuensi harapan dari populasi</span>
+          <span><i class="line" style="background:var(--mean)"></i>Rata-rata sampel terakhir x̄</span>
+        </div>
+        <div class="chart"><canvas id="cData" aria-label="Histogram data sampel" role="img"></canvas></div>
+        <p class="caption" id="capData"></p>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <h3>Distribusi rata-rata sampel X̄<small>Setiap sampel menyumbang satu nilai rata-rata ke histogram ini</small></h3>
+        </div>
+        <div class="legend">
+          <span><i style="background:var(--mean-soft);box-shadow:inset 0 0 0 1px var(--mean)"></i>Frekuensi rata-rata sampel</span>
+          <span><i class="line" style="background:var(--curve)"></i>Kurva normal N(μ, σ²/n)</span>
+        </div>
+        <div class="chart"><canvas id="cMean" aria-label="Histogram rata-rata sampel" role="img"></canvas></div>
+        <p class="caption" id="capMean"></p>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h3>Teori dibanding simulasi<small>Besaran distribusi rata-rata sampel X̄</small></h3></div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Besaran</th><th>Teori</th><th>Simulasi</th></tr></thead>
+            <tbody id="tbl"></tbody>
+          </table>
+        </div>
+        <p class="verdict" id="verdict"></p>
+      </article>
+    </section>
+  </main>
+  <footer>Kemencengan dan kurtosis berlebih teoretis X̄ dihitung dari populasi: γ₁/√n dan γ₂/n. Keduanya menuju 0 (nilai untuk distribusi normal) saat n membesar. Batang histogram dihitung terhadap jumlah sampel yang direncanakan, sehingga dalam mode bertahap batang tumbuh menuju kurva harapan.</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+
+/* ---------- math helpers ---------- */
+let spare=null;
+function rnorm(){ if(spare!==null){const s=spare;spare=null;return s;}
+  let u,v,s; do{u=Math.random()*2-1;v=Math.random()*2-1;s=u*u+v*v;}while(s>=1||s===0);
+  const f=Math.sqrt(-2*Math.log(s)/s); spare=v*f; return u*f; }
+function rgamma(k){ if(k<1) return rgamma(k+1)*Math.pow(Math.random(),1/k);
+  const d=k-1/3,c=1/Math.sqrt(9*d);
+  for(;;){ let x,v; do{x=rnorm();v=1+c*x;}while(v<=0); v=v*v*v; const u=Math.random();
+    if(u<1-0.0331*x*x*x*x) return d*v; if(Math.log(u)<0.5*x*x+d*(1-v+Math.log(v))) return d*v; } }
+const LC=[0.99999999999980993,676.5203681218851,-1259.1392167224028,771.32342877765313,-176.61502916214059,12.507343278686905,-0.13857109526572012,9.9843695780195716e-6,1.5056327351493116e-7];
+function lgamma(x){ if(x<0.5) return Math.log(Math.PI/Math.abs(Math.sin(Math.PI*x)))-lgamma(1-x);
+  x-=1; let a=LC[0]; const t=x+7.5; for(let i=1;i<9;i++) a+=LC[i]/(x+i);
+  return 0.5*Math.log(2*Math.PI)+(x+0.5)*Math.log(t)-t+Math.log(a); }
+function rpois(l){ if(l<10){ const L=Math.exp(-l); let k=0,p=1; do{k++;p*=Math.random();}while(p>L); return k-1; }
+  const sl=Math.sqrt(l),ll=Math.log(l),b=0.931+2.53*sl,a=-0.059+0.02483*b,ia=1.1239+1.1328/(b-3.4),vr=0.9277-3.6224/(b-2);
+  for(;;){ const U=Math.random()-0.5,V=Math.random(),us=0.5-Math.abs(U),k=Math.floor((2*a/us+b)*U+l+0.43);
+    if(us>=0.07&&V<=vr) return k; if(k<0||(us<0.013&&V>us)) continue;
+    if(Math.log(V)+Math.log(ia)-Math.log(a/(us*us)+b)<=-l+k*ll-lgamma(k+1)) return k; } }
+function rbinom(N,p){ const flip=p>0.5; const pp=flip?1-p:p; const q=1-pp,s=pp/q,a=(N+1)*s;
+  let r=Math.pow(q,N),u=Math.random(),x=0;
+  while(u>r){ u-=r; x++; if(x>N){x=N;break;} r*=(a/x-s); }
+  return flip?N-x:x; }
+function erf(x){ const s=x<0?-1:1; x=Math.abs(x); const t=1/(1+0.3275911*x);
+  const y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x); return s*y; }
+const Phi=z=>0.5*(1+erf(z/Math.SQRT2));
+const phi=z=>Math.exp(-0.5*z*z)/Math.sqrt(2*Math.PI);
+
+/* ---------- distributions ---------- */
+const DISTS={
+  normal:{name:"Normal",note:"Simetris",params:[{k:"mu",l:"μ (rata-rata)",d:50},{k:"s",l:"σ (simpangan baku)",d:10}],
+    check:p=>p.s>0?null:"σ harus lebih besar dari 0.",
+    mean:p=>p.mu,sd:p=>p.s,skew:()=>0,kurt:()=>0,
+    r:p=>p.mu+p.s*rnorm(),pdf:(x,p)=>phi((x-p.mu)/p.s)/p.s,range:p=>[p.mu-4*p.s,p.mu+4*p.s]},
+  uniform:{name:"Seragam",note:"Datar",params:[{k:"a",l:"a (batas bawah)",d:0},{k:"b",l:"b (batas atas)",d:10}],
+    check:p=>p.b>p.a?null:"b harus lebih besar dari a.",
+    mean:p=>(p.a+p.b)/2,sd:p=>(p.b-p.a)/Math.sqrt(12),skew:()=>0,kurt:()=>-1.2,
+    r:p=>p.a+(p.b-p.a)*Math.random(),pdf:(x,p)=>(x>=p.a&&x<=p.b)?1/(p.b-p.a):0,
+    range:p=>{const w=p.b-p.a;return [p.a-0.12*w,p.b+0.12*w];}},
+  exponential:{name:"Eksponensial",note:"Menceng kanan",params:[{k:"lam",l:"λ (laju)",d:0.5}],
+    check:p=>p.lam>0?null:"λ harus lebih besar dari 0.",
+    mean:p=>1/p.lam,sd:p=>1/p.lam,skew:()=>2,kurt:()=>6,
+    r:p=>-Math.log(1-Math.random())/p.lam,pdf:(x,p)=>x<0?0:p.lam*Math.exp(-p.lam*x),range:p=>[0,7/p.lam]},
+  gamma:{name:"Gamma",note:"Menceng kanan",params:[{k:"k",l:"k (bentuk)",d:2},{k:"th",l:"θ (skala)",d:2}],
+    check:p=>(p.k>0&&p.th>0)?null:"k dan θ harus lebih besar dari 0.",
+    mean:p=>p.k*p.th,sd:p=>Math.sqrt(p.k)*p.th,skew:p=>2/Math.sqrt(p.k),kurt:p=>6/p.k,
+    r:p=>rgamma(p.k)*p.th,
+    pdf:(x,p)=>x<=0?0:Math.exp((p.k-1)*Math.log(x)-x/p.th-lgamma(p.k)-p.k*Math.log(p.th)),
+    range:p=>[0,p.k*p.th+6*Math.sqrt(p.k)*p.th]},
+  beta:{name:"Beta",note:"Terbatas 0–1",params:[{k:"a",l:"α",d:0.5},{k:"b",l:"β",d:0.5}],
+    check:p=>(p.a>0&&p.b>0)?null:"α dan β harus lebih besar dari 0.",
+    mean:p=>p.a/(p.a+p.b),sd:p=>Math.sqrt(p.a*p.b/((p.a+p.b)**2*(p.a+p.b+1))),
+    skew:p=>2*(p.b-p.a)*Math.sqrt(p.a+p.b+1)/((p.a+p.b+2)*Math.sqrt(p.a*p.b)),
+    kurt:p=>{const a=p.a,b=p.b;return 6*((a-b)**2*(a+b+1)-a*b*(a+b+2))/(a*b*(a+b+2)*(a+b+3));},
+    r:p=>{const x=rgamma(p.a),y=rgamma(p.b);return x/(x+y);},
+    pdf:(x,p)=>(x<=0||x>=1)?0:Math.exp((p.a-1)*Math.log(x)+(p.b-1)*Math.log(1-x)+lgamma(p.a+p.b)-lgamma(p.a)-lgamma(p.b)),
+    range:()=>[0,1]},
+  poisson:{name:"Poisson",note:"Diskret",discrete:true,params:[{k:"lam",l:"λ (rata-rata)",d:3}],
+    check:p=>(p.lam>0&&p.lam<=200)?null:"λ harus di antara 0 dan 200.",
+    mean:p=>p.lam,sd:p=>Math.sqrt(p.lam),skew:p=>1/Math.sqrt(p.lam),kurt:p=>1/p.lam,
+    r:p=>rpois(p.lam),pmf:(k,p)=>k<0?0:Math.exp(k*Math.log(p.lam)-p.lam-lgamma(k+1)),
+    range:p=>{const s=Math.sqrt(p.lam);return [Math.max(0,Math.floor(p.lam-5*s-1)),Math.ceil(p.lam+5*s+3)];}},
+  binomial:{name:"Binomial",note:"Diskret",discrete:true,params:[{k:"N",l:"N (banyak percobaan)",d:10,int:true},{k:"p",l:"p (peluang sukses)",d:0.15}],
+    check:p=>(!Number.isInteger(p.N)||p.N<1||p.N>500)?"N harus bilangan bulat 1 sampai 500.":(p.p>0&&p.p<1)?null:"p harus di antara 0 dan 1.",
+    mean:p=>p.N*p.p,sd:p=>Math.sqrt(p.N*p.p*(1-p.p)),
+    skew:p=>(1-2*p.p)/Math.sqrt(p.N*p.p*(1-p.p)),kurt:p=>(1-6*p.p*(1-p.p))/(p.N*p.p*(1-p.p)),
+    r:p=>rbinom(p.N,p.p),
+    pmf:(k,p)=>(k<0||k>p.N)?0:Math.exp(lgamma(p.N+1)-lgamma(k+1)-lgamma(p.N-k+1)+k*Math.log(p.p)+(p.N-k)*Math.log(1-p.p)),
+    range:p=>{const m=p.N*p.p,s=Math.sqrt(m*(1-p.p));return [Math.max(0,Math.floor(m-5*s-1)),Math.min(p.N,Math.ceil(m+5*s+1))];}},
+  bimodal:{name:"Bimodal",note:"Campuran 2 normal",params:[{k:"m1",l:"μ₁",d:20},{k:"m2",l:"μ₂",d:70},{k:"s",l:"σ (tiap puncak)",d:7},{k:"w",l:"w (bobot puncak 1)",d:0.6}],
+    check:p=>!(p.s>0)?"σ harus lebih besar dari 0.":(p.w>0&&p.w<1)?null:"w harus di antara 0 dan 1.",
+    mean:p=>p.w*p.m1+(1-p.w)*p.m2,
+    sd:p=>Math.sqrt(mixM(p,2)),skew:p=>mixM(p,3)/Math.pow(mixM(p,2),1.5),kurt:p=>mixM(p,4)/mixM(p,2)**2-3,
+    r:p=>(Math.random()<p.w?p.m1:p.m2)+p.s*rnorm(),
+    pdf:(x,p)=>p.w*phi((x-p.m1)/p.s)/p.s+(1-p.w)*phi((x-p.m2)/p.s)/p.s,
+    range:p=>[Math.min(p.m1,p.m2)-4*p.s,Math.max(p.m1,p.m2)+4*p.s]}
+};
+function mixM(p,k){ const mu=p.w*p.m1+(1-p.w)*p.m2,s2=p.s*p.s;
+  const f=d=>k===2?d*d+s2:k===3?d*d*d+3*d*s2:d**4+6*d*d*s2+3*s2*s2;
+  return p.w*f(p.m1-mu)+(1-p.w)*f(p.m2-mu); }
+
+/* ---------- formatting ---------- */
+const fmt=(x,d=2)=>Number.isFinite(x)?x.toLocaleString("id-ID",{minimumFractionDigits:d,maximumFractionDigits:d}):"–";
+const fmtInt=x=>Math.round(x).toLocaleString("id-ID");
+function smart(x){ if(!Number.isFinite(x)) return "–"; const a=Math.abs(x);
+  return fmt(x, a>=1000?0:a>=100?1:a>=1?2:a>=0.01?3:4); }
+
+/* ---------- state ---------- */
+const S={dist:"exponential",vals:{},n:10,m:2000,mode:"all",view:"all",running:false,taken:0,valid:true};
+for(const k in DISTS){ S.vals[k]={}; DISTS[k].params.forEach(p=>S.vals[k][p.k]=p.d); }
+let G={}; // derived layout + counts
+
+function setup(){
+  const D=DISTS[S.dist],p=S.vals[S.dist];
+  const msg=D.check(p);
+  S.valid=!msg; $("err").hidden=!msg; $("err").textContent=msg||"";
+  stop(); S.taken=0;
+  if(!S.valid){ G=null; renderAll(); return; }
+  const mu=D.mean(p),sd=D.sd(p),se=sd/Math.sqrt(S.n);
+  G={D,p,mu,sd,se,skew:D.skew(p),kurt:D.kurt(p),last:[],lastMean:NaN,lastMeanBin:-1,
+     obsN:0,obsS:0,obsS2:0,s1:0,s2:0,s3:0,s4:0,within:0};
+  // data bins
+  const [lo,hi]=D.range(p);
+  if(D.discrete){ G.dLo=lo-0.5; G.dW=1; G.dNb=hi-lo+1; }
+  else { G.dLo=lo; G.dNb=40; G.dW=(hi-lo)/G.dNb; }
+  G.dHi=G.dLo+G.dNb*G.dW; G.dCnt=new Float64Array(G.dNb);
+  G.dProb=new Float64Array(G.dNb);
+  for(let i=0;i<G.dNb;i++){
+    if(D.discrete) G.dProb[i]=D.pmf(lo+i,p);
+    else{ let s=0; const x0=G.dLo+i*G.dW; for(let j=0;j<12;j++) s+=D.pdf(x0+(j+0.5)/12*G.dW,p); G.dProb[i]=s/12*G.dW; }
+  }
+  // mean bins
+  let mlo=mu-4.5*se,mhi=mu+4.5*se,raw=(mhi-mlo)/45,w;
+  if(D.discrete){ w=Math.max(1,Math.ceil(raw*S.n))/S.n; mlo=(Math.floor(mlo*S.n)-0.5)/S.n; }
+  else w=raw;
+  G.mLo=mlo; G.mW=w; G.mNb=Math.ceil((mhi-mlo)/w); G.mHi=mlo+G.mNb*w; G.mCnt=new Float64Array(G.mNb);
+  G.mProb=new Float64Array(G.mNb);
+  for(let i=0;i<G.mNb;i++){ const a=mlo+i*w; G.mProb[i]=Phi((a+w-mu)/se)-Phi((a-mu)/se); }
+  renderAll();
+}
+
+function takeSample(){
+  const {D,p}=G,n=S.n,arr=new Array(n); let s=0;
+  for(let i=0;i<n;i++){ const x=D.r(p); arr[i]=x; s+=x;
+    G.obsS+=x; G.obsS2+=x*x;
+    const b=Math.floor((x-G.dLo)/G.dW); if(b>=0&&b<G.dNb) G.dCnt[b]++; }
+  G.obsN+=n;
+  const xb=s/n; G.last=arr; G.lastMean=xb;
+  const b=Math.floor((xb-G.mLo)/G.mW); G.lastMeanBin=(b>=0&&b<G.mNb)?b:-1; if(G.lastMeanBin>=0) G.mCnt[b]++;
+  const z=(xb-G.mu)/G.se; G.s1+=z; G.s2+=z*z; G.s3+=z*z*z; G.s4+=z*z*z*z;
+  if(Math.abs(z)<=1.96) G.within++;
+  S.taken++;
+}
+
+/* ---------- running ---------- */
+let raf=0,lastT=0,acc=0;
+const sps=()=>Math.max(1,Math.round(Math.pow(500,+$("speed").value/100)));
+function start(){ if(!G||S.taken>=S.m) return; S.running=true; takeSample(); renderAll(); lastT=performance.now(); acc=0; raf=requestAnimationFrame(tick); updateButtons(); }
+function stop(){ S.running=false; cancelAnimationFrame(raf); updateButtons(); }
+function tick(t){ if(!S.running) return;
+  const dt=Math.min(0.1,(t-lastT)/1000); lastT=t; acc+=dt*sps();
+  let k=Math.min(Math.floor(acc),S.m-S.taken); acc-=Math.floor(acc);
+  for(let i=0;i<k;i++) takeSample();
+  if(k>0) renderAll();
+  if(S.taken>=S.m){ stop(); return; }
+  raf=requestAnimationFrame(tick); }
+function runAll(){ if(!G) return; while(S.taken<S.m) takeSample(); renderAll(); }
+function add(k){ if(!G) return; stop(); k=Math.min(k,S.m-S.taken); for(let i=0;i<k;i++) takeSample(); renderAll(); }
+
+/* ---------- chart drawing ---------- */
+function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function niceStep(span,count){ const s0=span/count,mag=Math.pow(10,Math.floor(Math.log10(s0))),r=s0/mag;
+  return (r<1.5?1:r<3?2:r<7?5:10)*mag; }
+function ticks(a,b,count){ const st=niceStep(b-a,count),out=[]; for(let v=Math.ceil(a/st-1e-9)*st;v<=b+1e-9*st;v+=st) out.push(Math.abs(v)<st*1e-9?0:v); return {out,st}; }
+function decs(st){ return Math.max(0,-Math.floor(Math.log10(st)+1e-9)); }
+
+function drawHist(cv,o){
+  const dpr=window.devicePixelRatio||1,W=cv.clientWidth,H=cv.clientHeight; if(!W||!H) return;
+  cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
+  const c=cv.getContext("2d"); c.setTransform(dpr,0,0,dpr,0,0); c.clearRect(0,0,W,H);
+  const col={ink:css("--ink"),muted:css("--muted"),grid:css("--grid"),line:css("--line"),curve:css("--curve")};
+  const mono='11px "IBM Plex Mono", ui-monospace, monospace';
+  const pad={l:50,r:14,t:18,b:o.dots?52:34};
+  const pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+  if(!o.bins){ c.fillStyle=col.muted; c.font='13px "IBM Plex Sans", sans-serif'; c.textAlign="center";
+    c.fillText(o.empty||"Parameter belum valid",W/2,H/2); return; }
+  const sx=x=>pad.l+(x-o.xMin)/(o.xMax-o.xMin)*pw;
+  let ymax=0; o.bins.forEach(b=>{ymax=Math.max(ymax,b.count,b.exp*1.15);}); ymax=Math.max(ymax*1.06,1);
+  const sy=y=>pad.t+ph-(y/ymax)*ph;
+  // grid + y ticks
+  c.font=mono; c.textAlign="right"; c.textBaseline="middle";
+  const yt=ticks(0,ymax,4); const yd=decs(yt.st);
+  yt.out.forEach(v=>{ const y=Math.round(sy(v))+0.5; c.strokeStyle=col.grid; c.lineWidth=1; c.beginPath(); c.moveTo(pad.l,y); c.lineTo(pad.l+pw,y); c.stroke();
+    c.fillStyle=col.muted; c.fillText(v.toLocaleString("id-ID",{maximumFractionDigits:yd}),pad.l-8,y); });
+  // bars
+  c.save(); c.beginPath(); c.rect(pad.l,pad.t,pw,ph); c.clip();
+  o.bins.forEach((b,i)=>{ if(b.count<=0) return;
+    let x0=sx(b.x0),x1=sx(b.x1); const bw=x1-x0;
+    if(o.discrete){ const g=bw*0.18; x0+=g; x1-=g; } else if(bw>3){ x0+=0.5; x1-=0.5; }
+    const y=sy(b.count),hl=i===o.hl;
+    c.fillStyle=hl?o.color:o.soft; c.fillRect(x0,y,Math.max(1,x1-x0),pad.t+ph-y);
+    c.strokeStyle=o.color; c.lineWidth=1; c.strokeRect(x0+0.5,y+0.5,Math.max(0,x1-x0-1),pad.t+ph-y-1); });
+  // expected
+  c.strokeStyle=col.curve; c.fillStyle=col.curve; c.lineWidth=1.8;
+  if(o.curve){ c.beginPath(); let first=true;
+    for(let i=0;i<=320;i++){ const x=o.xMin+(o.xMax-o.xMin)*i/320,y=o.curve(x); if(!Number.isFinite(y)) continue;
+      const py=Math.max(pad.t-4,sy(y)); if(first){c.moveTo(sx(x),py);first=false;} else c.lineTo(sx(x),py); }
+    c.stroke(); }
+  else { c.beginPath(); o.bins.forEach((b,i)=>{ const x=sx((b.x0+b.x1)/2),y=sy(b.exp); i?c.lineTo(x,y):c.moveTo(x,y); });
+    c.globalAlpha=.45; c.lineWidth=1; c.stroke(); c.globalAlpha=1;
+    o.bins.forEach(b=>{ if(b.exp<ymax*0.002) return; c.beginPath(); c.arc(sx((b.x0+b.x1)/2),sy(b.exp),2.6,0,7); c.fill(); }); }
+  c.restore();
+  // markers
+  c.textBaseline="alphabetic"; c.font=mono;
+  (o.markers||[]).forEach(m=>{ if(!(m.x>=o.xMin&&m.x<=o.xMax)) return; const x=Math.round(sx(m.x))+0.5;
+    c.strokeStyle=m.color; c.lineWidth=m.w||1.5; c.setLineDash(m.dash||[]); c.beginPath(); c.moveTo(x,pad.t+(m.top||0)); c.lineTo(x,pad.t+ph); c.stroke(); c.setLineDash([]);
+    c.fillStyle=m.color; const tw=c.measureText(m.label).width; let tx=x+5; if(tx+tw>pad.l+pw) tx=x-5-tw;
+    c.textAlign="left"; c.fillText(m.label,tx,pad.t+(m.top||0)+10); });
+  // axis
+  c.strokeStyle=col.line; c.lineWidth=1; c.beginPath(); c.moveTo(pad.l,pad.t+ph+0.5); c.lineTo(pad.l+pw,pad.t+ph+0.5); c.stroke();
+  // dots strip
+  let axisY=pad.t+ph;
+  if(o.dots){ const top=pad.t+ph+5,h=12;
+    c.fillStyle=o.color; c.globalAlpha=o.dots.length>80?0.45:0.85;
+    o.dots.forEach((x,i)=>{ if(x<o.xMin||x>o.xMax) return; const jy=top+((i*0.618034)%1)*h; c.beginPath(); c.arc(sx(x),jy+1,2.3,0,7); c.fill(); });
+    c.globalAlpha=1; axisY=top+h+3; }
+  const xt=ticks(o.xMin,o.xMax,Math.max(3,Math.floor(pw/80))); const xd=o.intTicks?0:decs(xt.st);
+  c.fillStyle=col.muted; c.textAlign="center"; c.textBaseline="top";
+  xt.out.forEach(v=>{ if(o.intTicks&&!Number.isInteger(Math.round(v*1e6)/1e6)) return; const x=sx(v);
+    c.fillRect(Math.round(x),pad.t+ph,1,4); c.fillText(v.toLocaleString("id-ID",{maximumFractionDigits:xd}),x,axisY+6); });
+}
+
+/* ---------- render ---------- */
+function renderAll(){ renderData(); renderMean(); renderText(); updateButtons(); }
+function renderData(){
+  const cv=$("cData");
+  if(!G){ drawHist(cv,{bins:null}); return; }
+  const lastView=S.view==="last", target=lastView?S.n:S.m*S.n;
+  let cnt=G.dCnt;
+  if(lastView){ cnt=new Float64Array(G.dNb); G.last.forEach(x=>{const b=Math.floor((x-G.dLo)/G.dW); if(b>=0&&b<G.dNb) cnt[b]++;}); }
+  const bins=[]; for(let i=0;i<G.dNb;i++) bins.push({x0:G.dLo+i*G.dW,x1:G.dLo+(i+1)*G.dW,count:cnt[i],exp:target*G.dProb[i]});
+  const D=G.D,p=G.p,markers=[{x:G.mu,label:"μ",color:css("--curve"),dash:[4,4],w:1}];
+  if(S.taken>0) markers.push({x:G.lastMean,label:"x̄ = "+smart(G.lastMean),color:css("--mean"),w:2,top:16});
+  drawHist(cv,{bins,discrete:D.discrete,intTicks:D.discrete,xMin:G.dLo,xMax:G.dHi,color:css("--data"),soft:css("--data-soft"),
+    curve:D.discrete?null:(x=>target*G.dW*D.pdf(x,p)),markers,dots:S.taken>0?G.last.slice(0,400):[]});
+}
+function renderMean(){
+  const cv=$("cMean");
+  if(!G){ drawHist(cv,{bins:null}); return; }
+  const bins=[]; for(let i=0;i<G.mNb;i++) bins.push({x0:G.mLo+i*G.mW,x1:G.mLo+(i+1)*G.mW,count:G.mCnt[i],exp:S.m*G.mProb[i]});
+  const markers=[{x:G.mu,label:"μ",color:css("--curve"),dash:[4,4],w:1}];
+  if(S.taken>0&&S.taken<S.m) markers.push({x:G.lastMean,label:"x̄ terbaru",color:css("--mean"),w:2,top:16});
+  drawHist(cv,{bins,discrete:false,xMin:G.mLo,xMax:G.mHi,color:css("--mean"),soft:css("--mean-soft"),
+    curve:x=>S.m*G.mW*phi((x-G.mu)/G.se)/G.se,markers,hl:(S.taken<S.m&&S.taken>0)?G.lastMeanBin:-1});
+}
+function renderText(){
+  const t=S.taken,m=S.m;
+  $("prog").style.width=(G?100*t/m:0)+"%";
+  $("progTxt").textContent=fmtInt(t)+" / "+fmtInt(m)+" sampel";
+  $("lastTxt").textContent=t>0&&G?"x̄ terakhir "+smart(G.lastMean):"";
+  if(!G){ $("formula").innerHTML="X̄ ≈ N(μ, σ²/n)"; $("formulaSub").textContent="Perbaiki parameter populasi untuk melanjutkan.";
+    $("tbl").innerHTML=""; $("verdict").textContent=""; $("capData").textContent=""; $("capMean").textContent=""; return; }
+  $("formula").innerHTML="X̄ ≈ N(<b>"+smart(G.mu)+"</b>, <b>"+smart(G.se)+"</b>²)";
+  $("formulaSub").innerHTML="Populasi "+G.D.name+": μ = "+smart(G.mu)+", σ = "+smart(G.sd)+" &nbsp;·&nbsp; galat baku σ/√n = "+smart(G.sd)+"/√"+S.n+" = "+smart(G.se);
+  if(S.view==="last"){
+    if(t>0){ const a=G.last,mn=G.lastMean; let v=0; a.forEach(x=>v+=(x-mn)**2);
+      $("capData").innerHTML="Sampel ke-"+fmtInt(t)+": <b>n = "+S.n+"</b> · rata-rata <b>"+smart(mn)+"</b>"+(S.n>1?" · simpangan baku <b>"+smart(Math.sqrt(v/(S.n-1)))+"</b>":"");
+    } else $("capData").textContent="Belum ada sampel. Tekan tombol jalankan atau +1.";
+  } else {
+    if(G.obsN>0){ const mn=G.obsS/G.obsN,sd=Math.sqrt(Math.max(0,(G.obsS2-G.obsN*mn*mn)/Math.max(1,G.obsN-1)));
+      $("capData").innerHTML="Semua pengamatan: <b>"+fmtInt(G.obsN)+"</b> nilai · rata-rata <b>"+smart(mn)+"</b> · simpangan baku <b>"+smart(sd)+"</b> (populasi: μ = "+smart(G.mu)+", σ = "+smart(G.sd)+"). Titik di bawah sumbu adalah sampel terakhir.";
+    } else $("capData").textContent="Belum ada pengamatan. Kurva menunjukkan frekuensi yang diharapkan dari populasi.";
+  }
+  const c=t; let mean=NaN,sd=NaN,sk=NaN,ku=NaN,pct=NaN;
+  if(c>0){ const mz=G.s1/c,e2=G.s2/c,e3=G.s3/c,e4=G.s4/c;
+    const m2=e2-mz*mz,m3=e3-3*mz*e2+2*mz**3,m4=e4-4*mz*e3+6*mz*mz*e2-3*mz**4;
+    mean=G.mu+G.se*mz; if(c>1) sd=G.se*Math.sqrt(Math.max(0,m2)*c/(c-1));
+    if(c>3&&m2>0){ sk=m3/Math.pow(m2,1.5); ku=m4/(m2*m2)-3; } pct=100*G.within/c; }
+  $("capMean").innerHTML=c>0?"<b>"+fmtInt(c)+"</b> rata-rata sampel, masing-masing dari n = "+S.n+" pengamatan.":"Belum ada rata-rata sampel. Kurva adalah N(μ, σ²/n) untuk "+fmtInt(S.m)+" sampel.";
+  const thS=G.skew/Math.sqrt(S.n),thK=G.kurt/S.n;
+  const rows=[["Rata-rata X̄","μ = "+smart(G.mu),smart(mean)],
+    ["Simpangan baku X̄ (galat baku)","σ/√n = "+smart(G.se),smart(sd)],
+    ["Kemencengan","γ₁/√n = "+fmt(thS,3),fmt(sk,3)],
+    ["Kurtosis berlebih","γ₂/n = "+fmt(thK,3),fmt(ku,3)],
+    ["Dalam μ ± 1,96·σ/√n","≈ 95%",Number.isFinite(pct)?fmt(pct,1)+"%":"–"]];
+  $("tbl").innerHTML=rows.map(r=>"<tr><td>"+r[0]+"</td><td class=\"num\">"+r[1]+"</td><td class=\"num sim\">"+r[2]+"</td></tr>").join("");
+  const a=Math.abs(thS),k=Math.abs(thK);
+  let v;
+  if(a<0.05&&k<0.1) v="<b>Sudah sangat dekat ke normal.</b> ";
+  else if(a<0.3&&k<0.5) v="<b>Cukup dekat ke normal.</b> ";
+  else v="<b>Masih terlihat menyimpang dari normal.</b> Coba perbesar n. ";
+  v+="Populasi "+G.D.name.toLowerCase()+" memiliki kemencengan "+fmt(G.skew,2)+" dan kurtosis berlebih "+fmt(G.kurt,2)+"; dengan n = "+S.n+" keduanya menyusut menjadi "+fmt(thS,3)+" dan "+fmt(thK,3)+" pada distribusi X̄.";
+  if(G.D.discrete&&S.n<10) v+=" Karena populasinya diskret, nilai X̄ hanya bisa berupa kelipatan 1/"+S.n+", sehingga histogramnya masih bergerigi.";
+  $("verdict").innerHTML=v;
+}
+function updateButtons(){
+  const run=$("run"),done=S.taken>=S.m;
+  run.disabled=!G; $("step1").disabled=$("step10").disabled=!G||done; $("reset").disabled=!G||S.taken===0;
+  if(S.mode==="all") run.textContent=done&&S.taken>0?"Ulangi simulasi":"Bangkitkan semua";
+  else run.textContent=S.running?"Jeda":done&&S.taken>0?"Ulangi dari awal":S.taken>0?"Lanjutkan":"Mulai bertahap";
+}
+
+/* ---------- UI build ---------- */
+function drawIcon(cv,key){
+  const D=DISTS[key],p=S.vals[key],dpr=window.devicePixelRatio||1,W=cv.clientWidth||120,H=cv.clientHeight||26;
+  cv.width=W*dpr; cv.height=H*dpr; const c=cv.getContext("2d"); c.setTransform(dpr,0,0,dpr,0,0); c.clearRect(0,0,W,H);
+  if(D.check(p)) return;
+  const col=css(key===S.dist?"--data":"--muted"); c.fillStyle=col; c.strokeStyle=col; c.lineWidth=1.6;
+  const [lo,hi]=D.range(p);
+  if(D.discrete){ const ks=[]; for(let k=lo;k<=hi;k++) ks.push(D.pmf(k,p)); const mx=Math.max(...ks),bw=W/ks.length;
+    ks.forEach((v,i)=>{ const h=v/mx*(H-3); c.fillRect(i*bw+bw*0.2,H-h,Math.max(1,bw*0.6),h); }); }
+  else { const ys=[]; for(let i=0;i<=60;i++){ const x=lo+(hi-lo)*(i/60)*0.999+(hi-lo)*0.0005; ys.push(D.pdf(x,p)); }
+    const sorted=[...ys].sort((a,b)=>a-b),mx=Math.min(sorted[60],sorted[57]*1.6)||1;
+    c.beginPath(); ys.forEach((y,i)=>{ const px=i/60*W,py=H-Math.min(1,y/mx)*(H-3)-1; i?c.lineTo(px,py):c.moveTo(px,py); }); c.stroke(); }
+}
+function buildDists(){
+  const box=$("dists"); box.innerHTML="";
+  Object.keys(DISTS).forEach(k=>{ const D=DISTS[k],b=document.createElement("button");
+    b.type="button"; b.className="dist"; b.id="d_"+k; b.setAttribute("aria-pressed",k===S.dist);
+    b.innerHTML='<canvas aria-hidden="true"></canvas><span>'+D.name+'</span><small>'+D.note+'</small>';
+    b.addEventListener("click",()=>{ S.dist=k; document.querySelectorAll(".dist").forEach(x=>x.setAttribute("aria-pressed",x.id==="d_"+k)); buildParams(); drawIcons(); changed(true); });
+    box.appendChild(b); });
+}
+function drawIcons(){ Object.keys(DISTS).forEach(k=>drawIcon($("d_"+k).querySelector("canvas"),k)); }
+function buildParams(){
+  const box=$("params"),D=DISTS[S.dist]; box.innerHTML="";
+  D.params.forEach(pr=>{ const f=document.createElement("div"); f.className="field";
+    const id="p_"+S.dist+"_"+pr.k;
+    f.innerHTML='<label for="'+id+'">'+pr.l+'</label><input type="number" id="'+id+'" step="'+(pr.int?1:"any")+'" value="'+S.vals[S.dist][pr.k]+'">';
+    f.querySelector("input").addEventListener("input",e=>{ const v=parseFloat(e.target.value); S.vals[S.dist][pr.k]=Number.isFinite(v)?v:NaN; drawIcon($("d_"+S.dist).querySelector("canvas"),S.dist); changed(); });
+    box.appendChild(f); });
+}
+const N_CHIPS=[1,2,5,10,30,100];
+function buildChips(){ $("nChips").innerHTML=N_CHIPS.map(v=>'<button type="button" class="chip" data-n="'+v+'" aria-pressed="'+(v===S.n)+'">n = '+v+'</button>').join("");
+  $("nChips").querySelectorAll(".chip").forEach(b=>b.addEventListener("click",()=>setN(+b.dataset.n))); }
+function setN(v,from){ v=Math.round(v); if(!(v>=1)) return; v=Math.min(1000,v); S.n=v;
+  if(from!=="num") $("nNum").value=v; if(from!=="range") $("nRange").value=Math.min(200,v);
+  $("nChips").querySelectorAll(".chip").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===v)); changed(); }
+
+let deb=0;
+function changed(now){ clearTimeout(deb); stop();
+  const go=()=>{ setup(); if(S.mode==="all"&&G) runAll(); };
+  if(now) go(); else deb=setTimeout(go,220); }
+
+$("nRange").addEventListener("input",e=>setN(+e.target.value,"range"));
+$("nNum").addEventListener("input",e=>{ const v=parseInt(e.target.value,10); if(v>=1) setN(v,"num"); });
+$("mNum").addEventListener("input",e=>{ const v=parseInt(e.target.value,10); if(v>=1){ S.m=Math.min(10000,v); changed(); } });
+function setMode(m){ S.mode=m; $("modeAll").setAttribute("aria-pressed",m==="all"); $("modeStep").setAttribute("aria-pressed",m==="step");
+  $("speedWrap").hidden=m!=="step"; stop(); setup(); if(m==="all"&&G) runAll(); }
+$("modeAll").addEventListener("click",()=>setMode("all"));
+$("modeStep").addEventListener("click",()=>setMode("step"));
+function setView(v){ S.view=v; $("viewAll").setAttribute("aria-pressed",v==="all"); $("viewLast").setAttribute("aria-pressed",v==="last"); renderData(); renderText(); }
+$("viewAll").addEventListener("click",()=>setView("all"));
+$("viewLast").addEventListener("click",()=>setView("last"));
+const speedTxt=()=>{ $("speedTxt").textContent=sps()+" sampel per detik"; };
+$("speed").addEventListener("input",speedTxt);
+$("run").addEventListener("click",()=>{ if(!G) return;
+  if(S.mode==="all"){ if(S.taken>=S.m) setup(); runAll(); }
+  else { if(S.running) stop(); else { if(S.taken>=S.m) setup(); start(); } } });
+$("step1").addEventListener("click",()=>add(1));
+$("step10").addEventListener("click",()=>add(10));
+$("reset").addEventListener("click",()=>setup());
+
+const redraw=()=>{ drawIcons(); renderData(); renderMean(); };
+new ResizeObserver(()=>redraw()).observe(document.querySelector(".results"));
+try{ matchMedia("(prefers-color-scheme: dark)").addEventListener("change",redraw); }catch(e){}
+new MutationObserver(redraw).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(redraw);
+
+buildDists(); buildParams(); buildChips(); speedTxt(); drawIcons();
+setup(); runAll();
+})();
+</script>
+</body>
+</html>
