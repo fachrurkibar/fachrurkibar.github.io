@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Personal Blog</title>
+  <meta name="description" content="Blog personal: renungan, kajian, matematika, statistika, dan kegiatan Tri Dharma.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%232b4d9c'/><text x='32' y='44' font-size='34' text-anchor='middle' fill='%23ffd43b' font-family='serif'>ف</text></svg>">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Gentium+Book+Plus:ital,wght@0,400;0,700;1,400;1,700&family=Kaushan+Script&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Pustaka pihak ketiga (CDN) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/marked@16.4.2/lib/marked.umd.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script defer src="assets/js/runner.js"></script>
+  <script defer src="assets/js/app.js"></script>
+</head>
+<body>
+  <div class="page">
+    <!-- ===== HEADER / BANNER ===== -->
+    <header class="banner" id="banner">
+      <svg class="banner-art" viewBox="0 0 1200 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#1f3f73"/><stop offset=".45" stop-color="#2f5f93"/><stop offset="1" stop-color="#173257"/>
+          </linearGradient>
+          <radialGradient id="glow" cx=".18" cy=".35" r=".45">
+            <stop offset="0" stop-color="#b9d4ff" stop-opacity=".95"/><stop offset=".55" stop-color="#7ea6e8" stop-opacity=".6"/><stop offset="1" stop-color="#7ea6e8" stop-opacity="0"/>
+          </radialGradient>
+          <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .09 0"/></filter>
+          <g id="bird"><path d="M0 0 C 18 -22 40 -40 70 -46 C 52 -30 44 -14 40 2 C 60 -6 84 -4 104 6 C 78 6 56 12 40 22 C 30 12 14 6 0 0 Z" fill="#eaf2ff"/></g>
+        </defs>
+        <rect width="1200" height="200" fill="url(#sky)"/>
+        <ellipse cx="210" cy="70" rx="330" ry="120" fill="url(#glow)"/>
+        <path d="M0 160 Q 300 130 600 150 T 1200 140 V200 H0Z" fill="#12284a" opacity=".55"/>
+        <g opacity=".95">
+          <use href="#bird" transform="translate(560 70) scale(1.05)"/>
+          <use href="#bird" transform="translate(760 40) scale(1.25) rotate(-6)"/>
+          <use href="#bird" transform="translate(980 85) scale(1.4) rotate(4)"/>
+          <use href="#bird" transform="translate(860 140) scale(.7)" opacity=".7"/>
+        </g>
+        <rect width="1200" height="200" filter="url(#grain)"/>
+      </svg>
+      <div class="banner-text">
+        <div class="banner-arabic" data-site="titleArabic">فخر الرازي</div>
+        <div class="banner-script" data-site="title">Personal Blog...</div>
+        <div class="banner-tagline" data-site="tagline">Berbagi Manfaat untuk Bekal Perjalanan Menuju Pulang</div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <!-- ===== KOLOM UTAMA ===== -->
+      <div class="main-col">
+        <nav class="nav" aria-label="Menu utama">
+          <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="menu">☰ Menu</button>
+          <ul class="menu" id="menu"></ul>
+        </nav>
+        <main id="content" class="content" tabindex="-1">
+          <p class="loading">Memuat…</p>
+        </main>
+      </div>
+
+      <!-- ===== SIDEBAR ===== -->
+      <aside class="sidebar">
+        <div class="side-search">
+          <form id="searchForm" role="search">
+            <input id="searchInput" type="search" placeholder="Cari tulisan…" aria-label="Cari tulisan">
+          </form>
+        </div>
+        <div class="side-body">
+          <section class="widget">
+            <h3 class="widget-title">:: LANGKAHKU ::</h3>
+            <div id="calendar" class="calendar"></div>
+          </section>
+          <section class="widget">
+            <h3 class="widget-title">:: TULISAN TERBARU ::</h3>
+            <ul id="recentList" class="side-list"></ul>
+          </section>
+          <section class="widget">
+            <h3 class="widget-title">:: KATEGORI ::</h3>
+            <ul id="catList" class="side-list cats"></ul>
+          </section>
+          <section class="widget">
+            <h3 class="widget-title">:: RUANG KERJA ::</h3>
+            <ul class="side-list">
+              <li><a href="#/lab">🧪 Lab Kode (HTML · JS · Python)</a></li>
+              <li><a href="#/tulis">✍️ Tulis artikel baru</a></li>
+              <li><a href="#/" id="editMenuLink">☰ Atur menu</a></li>
+            </ul>
+          </section>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="footer"><span data-site="footer"></span></footer>
+  </div>
+
+  <!-- ===== EDITOR MENU (modal) ===== -->
+  <dialog id="menuEditor" class="modal">
+    <form method="dialog" class="modal-inner">
+      <header class="modal-head">
+        <h2>Atur Menu</h2>
+        <button value="close" class="icon-btn" aria-label="Tutup">✕</button>
+      </header>
+      <p class="hint">Ubah label dan tujuan (route) setiap menu. Perubahan langsung tersimpan di browser ini. Agar berlaku untuk semua pengunjung, klik <b>Unduh menu.json</b> lalu ganti berkas <code>data/menu.json</code> di repositori.</p>
+      <p class="hint">Format route: <code>#/</code> beranda · <code>#/kategori/nama</code> · <code>#/halaman/nama</code> (berkas <code>pages/nama.md</code>) · <code>#/post/slug</code> · atau URL lengkap <code>https://…</code></p>
+      <div id="menuTree" class="menu-tree"></div>
+      <footer class="modal-foot">
+        <button type="button" class="btn" id="addTop">＋ Menu utama</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn ghost" id="resetMenu">Kembalikan</button>
+        <button type="button" class="btn" id="exportMenu">Unduh menu.json</button>
+        <button value="close" class="btn primary">Selesai</button>
+      </footer>
+    </form>
+  </dialog>
+</body>
+</html>

@@ -1,0 +1,31 @@
+[
+  { "label": "Beranda", "route": "#/" },
+  {
+    "label": "Artikel", "route": "#/kategori/artikel",
+    "children": [
+      { "label": "Renungan", "route": "#/kategori/renungan" },
+      { "label": "Matematika", "route": "#/kategori/matematika" },
+      { "label": "Statistika", "route": "#/kategori/statistika" }
+    ]
+  },
+  { "label": "Berita", "route": "#/kategori/berita" },
+  {
+    "label": "Kajian", "route": "#/kategori/kajian",
+    "children": [
+      { "label": "Qur'an", "route": "#/kategori/quran" },
+      { "label": "Hadits", "route": "#/kategori/hadits" },
+      { "label": "Fiqh", "route": "#/kategori/fiqh" },
+      { "label": "Sirah", "route": "#/kategori/sirah" }
+    ]
+  },
+  {
+    "label": "Tri Dharma", "route": "#/kategori/tridharma",
+    "children": [
+      { "label": "Pendidikan", "route": "#/kategori/pendidikan" },
+      { "label": "Penelitian", "route": "#/kategori/penelitian" },
+      { "label": "Pengabdian", "route": "#/kategori/pengabdian" }
+    ]
+  },
+  { "label": "Download", "route": "#/halaman/download" },
+  { "label": "ProfilKu", "route": "#/halaman/profilku" }
+]

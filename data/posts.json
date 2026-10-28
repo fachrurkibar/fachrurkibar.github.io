@@ -1,0 +1,65 @@
+[
+  {
+    "slug": "statistik-deskriptif-interaktif",
+    "title": "Kalkulator Statistik Deskriptif untuk Mahasiswa",
+    "date": "2026-10-20",
+    "category": "pendidikan",
+    "tags": ["statistika", "media pembelajaran", "html"],
+    "summary": "Media belajar interaktif: masukkan data, lihat rata-rata, median, simpangan baku, dan histogramnya langsung di halaman.",
+    "file": "posts/statistik-deskriptif-interaktif.md"
+  },
+  {
+    "slug": "teorema-limit-pusat",
+    "title": "Teorema Limit Pusat: Melihat Keteraturan di Balik Keacakan",
+    "date": "2026-10-12",
+    "category": "statistika",
+    "tags": ["statistika", "python", "simulasi"],
+    "summary": "Simulasi Python yang bisa dijalankan langsung untuk melihat bagaimana rata-rata sampel membentuk kurva normal.",
+    "file": "posts/teorema-limit-pusat.md"
+  },
+  {
+    "slug": "fibonacci-rasio-emas",
+    "title": "Deret Fibonacci dan Rasio Emas",
+    "date": "2026-09-28",
+    "category": "matematika",
+    "tags": ["matematika", "python", "barisan"],
+    "summary": "Mengapa rasio dua suku Fibonacci berurutan mendekati φ ≈ 1,618? Bukti singkat dan grafik konvergensinya.",
+    "file": "posts/fibonacci-rasio-emas.md"
+  },
+  {
+    "slug": "iqra-perintah-pertama",
+    "title": "Iqra': Perintah Pertama adalah Membaca",
+    "date": "2026-09-15",
+    "category": "quran",
+    "tags": ["kajian", "al-qur'an", "ilmu"],
+    "summary": "Renungan atas QS Al-'Alaq: ilmu sebagai pintu pertama, dan membaca yang selalu disandarkan pada nama Allah.",
+    "file": "posts/iqra-perintah-pertama.md"
+  },
+  {
+    "slug": "workshop-analisis-data-madrasah",
+    "title": "Workshop Analisis Data untuk Guru Madrasah",
+    "date": "2026-08-30",
+    "category": "pengabdian",
+    "tags": ["pengabdian", "pelatihan"],
+    "summary": "Catatan kegiatan pengabdian: pelatihan mengolah nilai siswa menjadi informasi yang bermakna.",
+    "file": "posts/workshop-analisis-data-madrasah.md"
+  },
+  {
+    "slug": "ilmu-bekal-pulang",
+    "title": "Ilmu sebagai Bekal Perjalanan Pulang",
+    "date": "2026-08-14",
+    "category": "renungan",
+    "tags": ["renungan", "ilmu"],
+    "summary": "Setiap perjalanan butuh bekal. Sebuah renungan tentang ilmu yang bermanfaat dan amal yang terus mengalir.",
+    "file": "posts/ilmu-bekal-pulang.md"
+  },
+  {
+    "slug": "seminar-nasional-statistika-2026",
+    "title": "Seminar Nasional Statistika dan Sains Data 2026",
+    "date": "2026-07-22",
+    "category": "berita",
+    "tags": ["berita", "seminar"],
+    "summary": "Pengumuman dan ringkasan kegiatan seminar nasional, lengkap dengan tautan materi.",
+    "file": "posts/seminar-nasional-statistika-2026.md"
+  }
+]
