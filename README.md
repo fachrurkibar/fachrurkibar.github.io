@@ -23,9 +23,18 @@ Uji di komputer sendiri: jalankan `python -m http.server` di folder ini lalu buk
 | `assets/js/app.js` | Router, dashboard, sidebar, editor menu, halaman Tulis & Lab |
 | `assets/js/runner.js` | Menjalankan blok Python / HTML / JS |
 
+## Mode pemilik (Ruang Kerja)
+
+Widget **Ruang Kerja** (Lab Kode, Tulis artikel baru, Atur menu) hanya tampil di browser pemilik. Pengunjung biasa tidak melihatnya. Halaman `#/lab` dan `#/tulis`, pintasan `Ctrl/⌘ + Shift + M`, dan `?edit` juga hanya berfungsi dalam mode pemilik.
+
+- **Mengaktifkan:** buka `https://NAMA-ANDA.github.io/?pemilik` sekali di setiap browser yang Anda pakai. Status ini tersimpan di browser tersebut.
+- **Mematikan:** klik *Keluar* di footer, atau buka `https://NAMA-ANDA.github.io/?keluar`.
+
+Mode pemilik hanya menyembunyikan tampilan, bukan sistem keamanan. Perubahan menu lewat *Atur menu* hanya tersimpan di browser yang dipakai dan tidak pernah mengubah situs untuk orang lain. Situs hanya berubah jika berkas di repositori GitHub diubah, dan itu hanya bisa dilakukan oleh pemilik akun.
+
 ## Mengubah menu
 
-- **Cara visual:** klik *Atur menu* di sidebar (atau `Ctrl/⌘ + Shift + M`, atau buka `?edit`). Perubahan langsung terlihat di browser Anda. Klik **Unduh menu.json**, lalu ganti `data/menu.json` di repositori agar berlaku untuk semua pengunjung.
+- **Cara visual:** dalam mode pemilik, klik *Atur menu* di sidebar (atau `Ctrl/⌘ + Shift + M`, atau buka `?pemilik&edit`). Perubahan langsung terlihat di browser Anda. Klik **Unduh menu.json**, lalu ganti `data/menu.json` di repositori agar berlaku untuk semua pengunjung.
 - **Cara manual:** edit `data/menu.json`.
 
 Format `route`:
@@ -38,7 +47,7 @@ Format `route`:
 
 ## Menambah tulisan
 
-Cara termudah: buka **Tulis artikel baru** di sidebar (`#/tulis`). Isi judul, rubrik, dan konten — pratinjau tampil langsung. Lalu:
+Cara termudah: dalam mode pemilik, buka **Tulis artikel baru** di sidebar (`#/tulis`). Isi judul, rubrik, dan konten — pratinjau tampil langsung. Lalu:
 
 1. Klik **Unduh .md** → simpan ke folder `posts/`.
 2. Klik **Salin entri JSON** → tempel di baris paling atas array dalam `data/posts.json`.
@@ -74,7 +83,7 @@ console.log(2 ** 10)
 - `js run` — keluaran `console.log` ditampilkan di bawah kode.
 - HTML biasa (termasuk `<script>`) boleh ditulis langsung di Markdown.
 
-Lab Kode (`#/lab`) menyediakan ruang uji coba untuk Python, JavaScript, HTML·CSS·JS, dan Markdown.
+Lab Kode (`#/lab`, khusus mode pemilik) menyediakan ruang uji coba untuk Python, JavaScript, HTML·CSS·JS, dan Markdown.
 
 ## Gambar header sendiri
 
