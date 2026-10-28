@@ -14,6 +14,14 @@
   const LS_MENU = 'blog.menu.override';
   const LS_DRAFT = 'blog.draft';
   const LS_THEME = 'blog.theme';
+  const LS_OWNER = 'blog.owner';
+  // Mode pemilik: aktifkan dengan membuka situs memakai ?pemilik, matikan dengan ?keluar
+  const OWNER = (() => {
+    const qs = new URLSearchParams(location.search);
+    if (qs.has('keluar')) { try { localStorage.removeItem(LS_OWNER); } catch { } }
+    else if (qs.has('pemilik')) { try { localStorage.setItem(LS_OWNER, 'true'); } catch { } }
+    try { return localStorage.getItem(LS_OWNER) === 'true'; } catch { return false; }
+  })();
   const store = {
     get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* penyimpanan tidak tersedia */ } },
@@ -334,7 +342,7 @@
     if (i < 0) return pageNotFound();
     const p = S.posts[i];
     setTitle(p.title);
-    view().innerHTML = `<article class="post">${postHeader(p)}<div class="prose"><p class="loading">Memuat tulisan…</p></div></article>`;
+    view().innerHTML = `<article class="post has-date">${postHeader(p)}<div class="prose"><p class="loading">Memuat tulisan…</p></div></article>`;
     try {
       const md = await getText(p.file);
       const body = $('.prose', view());
@@ -569,8 +577,8 @@ console.log(hasil.join(", "));`;
     else if (a === 'arsip' && b) pageArchive(b);
     else if (a === 'cari') pageSearch(b || '');
     else if (a === 'tag' && b) pageTag(b);
-    else if (a === 'lab') pageLab(q);
-    else if (a === 'tulis') pageWrite();
+    else if (a === 'lab' && OWNER) pageLab(q);
+    else if (a === 'tulis' && OWNER) pageWrite();
     else pageNotFound();
     markActiveMenu();
     window.scrollTo(0, 0);
@@ -599,7 +607,7 @@ console.log(hasil.join(", "));`;
   async function init() {
     try {
       const [site, menu, posts] = await Promise.all([getJSON('data/site.json'), getJSON('data/menu.json'), getJSON('data/posts.json')]);
-      S.site = site; S.defaultMenu = menu; S.menu = store.get(LS_MENU) || menu;
+      S.site = site; S.defaultMenu = menu; S.menu = (OWNER && store.get(LS_MENU)) || menu;
       S.posts = posts.sort((x, y) => y.date.localeCompare(x.date));
     } catch (e) {
       view().innerHTML = `<h1 class="post-title">Gagal memuat data</h1><p>${esc(e.message)}</p>
@@ -612,13 +620,17 @@ console.log(hasil.join(", "));`;
 
     $('#navToggle').onclick = () => { const o = $('#menu').classList.toggle('open'); $('#navToggle').setAttribute('aria-expanded', o); };
     $('#searchForm').onsubmit = e => { e.preventDefault(); const v = $('#searchInput').value.trim(); if (v) location.hash = '#/cari/' + encodeURIComponent(v); };
-    $('#editMenuLink').onclick = e => { e.preventDefault(); openMenuEditor(); };
-    document.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'm') { e.preventDefault(); openMenuEditor(); } });
+    if (OWNER) {
+      $('#ruangKerja').hidden = false;
+      $('#editMenuLink').onclick = e => { e.preventDefault(); openMenuEditor(); };
+      document.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'm') { e.preventDefault(); openMenuEditor(); } });
+      $('.footer').insertAdjacentHTML('beforeend', ' <span class="owner-badge">· Mode pemilik · <a href="?keluar">Keluar</a></span>');
+    }
     window.addEventListener('hashchange', route);
-    if (new URLSearchParams(location.search).has('edit')) openMenuEditor();
+    if (OWNER && new URLSearchParams(location.search).has('edit')) openMenuEditor();
     route();
   }
 
-  window.Blog = { renderMarkdown, hydrate, openMenuEditor };
+  window.Blog = { renderMarkdown, hydrate };
   init();
 })();
