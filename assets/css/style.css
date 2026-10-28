@@ -59,7 +59,7 @@ code,pre,textarea.code{font-family:var(--mono)}
 
 /* ---------- Tata letak ---------- */
 .layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;margin-top:28px;align-items:start}
-.main-col{min-width:0;margin-left:64px;background:var(--paper);border-radius:4px;box-shadow:var(--shadow)}
+.main-col{min-width:0;background:var(--paper);border-radius:4px;box-shadow:var(--shadow)}
 
 /* ---------- Menu ---------- */
 .nav{background:var(--nav);border-radius:4px 4px 0 0;position:relative}
@@ -79,7 +79,8 @@ code,pre,textarea.code{font-family:var(--mono)}
 .content{padding:34px 40px 40px;min-height:60vh;outline:none}
 .loading{color:var(--ink-soft);font-style:italic}
 .post{position:relative}
-.date-badge{position:absolute;left:-104px;top:6px;width:72px;background:var(--paper);border-radius:0 4px 4px 0;text-align:center;
+.post.has-date{padding-left:56px}
+.date-badge{position:absolute;left:-40px;top:6px;width:72px;background:var(--paper);border-radius:0 4px 4px 0;text-align:center;
   padding:8px 0;box-shadow:var(--shadow);color:#5d6b3f;line-height:1.1}
 .date-badge .m{font-size:20px}.date-badge .d{font-size:32px;font-variant-numeric:oldstyle-nums}
 .post-title{font:italic 700 46px/1.15 var(--font);color:var(--title);margin:0 0 6px;text-shadow:1px 1px 0 rgba(255,255,255,.6)}
@@ -199,6 +200,7 @@ textarea.editor{width:100%;min-height:420px;font:14px/1.55 var(--mono);padding:1
 
 .footer{text-align:center;color:var(--ink-soft);font-size:15px;margin-top:22px}
 .footer .theme-toggle{margin-left:10px}
+.footer .owner-badge{margin-left:10px;font-size:14px}
 
 /* ---------- Modal editor menu ---------- */
 .modal{border:0;border-radius:10px;padding:0;width:min(720px,94vw);background:var(--paper);color:var(--ink);box-shadow:0 10px 40px rgba(0,0,0,.35)}
@@ -220,7 +222,7 @@ textarea.editor{width:100%;min-height:420px;font:14px/1.55 var(--mono);padding:1
 /* ---------- Responsif ---------- */
 @media (max-width: 1000px){
   .layout{grid-template-columns:1fr}
-  .main-col{margin-left:0}
+  .post.has-date{padding-left:0}
   .date-badge{position:static;display:inline-flex;gap:6px;width:auto;padding:2px 12px;border-radius:20px;margin-bottom:8px;box-shadow:none;border:1px solid var(--line)}
   .date-badge .d,.date-badge .m{font-size:16px}
   .split,.web-grid{grid-template-columns:1fr}
